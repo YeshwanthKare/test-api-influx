@@ -2,9 +2,11 @@
   "name": "mywater-dashboard",
   "version": "1.0.0",
   "description": "Project for mywater dashboard",
+  "homepage": "https://erzhan-temir.github.io/dashboard/",
   "main": "index.js",
   "scripts": {
     "eslint": "eslint src/**/*.js",
+    "deplot": "gh-pages -d public",
     "test": "npm run eslint",
     "start": "webpack serve --open",
     "build": "webpack"
@@ -18,6 +20,7 @@
     "babel-loader": "8.2.2",
     "eslint": "7.26.0",
     "eslint-config-htmlacademy": "3.0.0",
+    "gh-pages": "3.1.0",
     "webpack": "5.36.2",
     "webpack-cli": "4.7.0",
     "webpack-dev-server": "3.11.2"
