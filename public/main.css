@@ -1,0 +1,42 @@
+#root {
+  width: 960px;
+  height: 100vh;
+  margin: 0 auto;
+
+  display: flex;
+}
+
+body {
+  background-color: darkgrey;
+}
+
+.tabs-block {
+  width: 150px;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 10px;
+  box-sizing: border-box;
+
+  background-color: #c1c1c1;
+}
+
+.content-block {
+  flex-grow: 1;
+
+  padding: 10px;
+  box-sizing: border-box;
+
+  background-color: #f3f3f3;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  padding: 5px;
+  border: 1px solid black;
+}
