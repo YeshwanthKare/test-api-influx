@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "eslint": "eslint src/**/*.js",
-    "deplot": "gh-pages -d public",
+    "deploy": "gh-pages -d public",
     "test": "npm run eslint",
     "start": "webpack serve --open",
     "build": "webpack"
