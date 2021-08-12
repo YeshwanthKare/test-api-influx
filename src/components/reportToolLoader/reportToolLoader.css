@@ -1,0 +1,15 @@
+.report-tool-loader {
+  margin: 20px;
+  border: 2px dashed darkcyan;
+  padding: 10px;
+}
+
+select {
+  min-height: 24px;
+  margin-right: 20px;
+}
+
+button {
+  min-height: 24px;
+  margin: 0 10px;
+}

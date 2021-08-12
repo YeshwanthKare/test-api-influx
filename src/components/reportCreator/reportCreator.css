@@ -1,0 +1,19 @@
+.content-block {
+  padding: 20px;
+}
+
+.tabulator {
+  margin-top: 20px;
+}
+
+.tabulator:first-of-type {
+  margin-top: 0;
+}
+
+.delete-btn {
+  margin-top: 10px;
+}
+
+.content-block div[class^="device"] {
+  margin-top: 30px;
+}

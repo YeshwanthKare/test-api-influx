@@ -1,38 +1,34 @@
-// import Chart from 'chart.js/auto';
-import {reportCreator} from './report';
+import html2PDF from 'jspdf-html2canvas';
 
-const tabs = {
-  report: `Report`,
-  maintenance: `Maintenance`,
-  device: `Device`,
-};
+import Board from './board/board.js';
 
-const rootElement = document.querySelector(`#root`);
-const tabsBlock = document.createElement(`DIV`);
-tabsBlock.classList.add(`tabs-block`);
-export const contentBlock = document.createElement(`DIV`);
-contentBlock.classList.add(`content-block`);
+import jQuery from "jquery";
+window.$ = window.jQuery = jQuery;
 
-const reportTab = document.createElement(`button`);
-reportTab.classList.add(`report-button`);
-reportTab.textContent = tabs.report;
-const maintenanceTab = document.createElement(`button`);
-maintenanceTab.classList.add(`maintenance-button`);
-maintenanceTab.textContent = tabs.maintenance;
-const deviceTab = document.createElement(`button`);
-deviceTab.classList.add(`device-button`);
-deviceTab.textContent = tabs.device;
-tabsBlock.appendChild(reportTab);
-tabsBlock.appendChild(maintenanceTab);
-tabsBlock.appendChild(deviceTab);
+$( document ).ready(function() {
+  if (!sessionStorage.getItem('key')) {
+    sessionStorage.setItem('key', window.prompt('Enter Auth Key'));
+  }
 
-reportCreator.loadData(1);
+  const board = new Board($('#root')).init();
 
-// setTimeout(function () {
-//   console.log(reportCreator.devicesID);
-//   console.log(reportCreator.devicesInfo);
-//   console.log(reportCreator.generalReport);
-// }, 1000);
-
-rootElement.appendChild(tabsBlock);
-rootElement.appendChild(contentBlock);
+  $("<button>Print</button>")
+  .addClass("print-btn")
+  .appendTo($("#root"))
+  .click(() => {
+    html2PDF(document.body, {
+      jsPDF: {
+        format: "a4",
+      },
+      imageType: "image/jpeg",
+      imageQuality: 1,
+      margin: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      },
+      output: "report.pdf",
+    });
+  });
+});
