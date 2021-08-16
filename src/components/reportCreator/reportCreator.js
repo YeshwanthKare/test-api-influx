@@ -105,7 +105,7 @@ const reportCreator = {
           endDateInputVal
         ).then( async (data) => {
 
-          let fullIccidData = data;
+          let fullIccidData = data.sessions;
           let additionalData;
 
           if (data.sessions.length === 1000) {
