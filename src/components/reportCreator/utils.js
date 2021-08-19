@@ -22,3 +22,13 @@ export const createDeviceSelectorControls = (data, parentEl, selector, addBtnId,
   $(`<input type="date" id="${end}">`).appendTo($(`.${selector}`));
   $(`<button id="${addBtnId}">Add</button>`).appendTo($(`.${selector}`));
 };
+
+export const createDeviceSelectorControlsMonth = (data, parentEl, selector, addBtnId, start, end) => {
+  data.forEach((device) => {
+    $(`<option value="${device.iccid}">${device.iccid}</option>`).appendTo(
+      $(`#${parentEl}`)
+    );
+  });
+  $(`<input type="month" id="${start}">`).appendTo($(`.${selector}`));
+  $(`<button id="${addBtnId}">Add</button>`).appendTo($(`.${selector}`));
+};

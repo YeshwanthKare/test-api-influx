@@ -3,7 +3,13 @@ import API from "../../api.js";
 import Chart from "chart.js/auto";
 import dayjs from "dayjs";
 import "./reportCreator.css";
-import { addLoaderStub, addDeleteBtn, createDeviceSelectorControls } from './utils';
+import DeviceReport from "../../classes/device-report";
+import {
+  addLoaderStub,
+  addDeleteBtn,
+  createDeviceSelectorControls,
+  createDeviceSelectorControlsMonth,
+} from "./utils";
 import {
   SEC_IN_DAY,
   REFILL_COUNT_PER_SESSION,
@@ -14,11 +20,10 @@ import {
   CO2_EMISSIONS,
   PLATIC_WASTE,
   FILTER_LIMIT,
-  COLUMNS
-} from './constants';
+  COLUMNS,
+} from "./constants";
 
 const reportCreator = {
-  
   init() {
     return $("<div></div>").addClass("content-block");
   },
@@ -76,24 +81,41 @@ const reportCreator = {
     const endSelectorId = `end-${selector}`;
     const addBtnId = `add-device-${selector}`;
     const statisticsTableId = `env-table-${selector}`;
+    const filterStatusId = `filter-status-${selector}`;
     const errorTableId = `err-table-${selector}`;
 
     $(`<select id='${iccidSelectorId}'></select>`).appendTo($(`.${selector}`));
 
     API.loadGeneralTable().then((data) => {
-      
-      createDeviceSelectorControls(data, iccidSelectorId, selector, addBtnId, startSelectorId, endSelectorId);
+
+      createDeviceSelectorControls(
+        data,
+        iccidSelectorId,
+        selector,
+        addBtnId,
+        startSelectorId,
+        endSelectorId
+      );
 
       const usageGraphBlock = $("<div></div>");
-      const usageGraphArea = $('<canvas></canvas>');
+      const usageGraphArea = $("<canvas></canvas>");
       $(usageGraphArea).appendTo(usageGraphBlock);
       usageGraphBlock.appendTo($(`.${selector}`));
 
-      const statisticsTable = $("<div></div>").addClass(statisticsTableId).appendTo($(`.${selector}`));
-      const errorsTable = $("<div></div>").addClass(errorTableId).appendTo($(`.${selector}`));
+      const statisticsTable = $("<div></div>")
+        .addClass(statisticsTableId)
+        .appendTo($(`.${selector}`));
+      const filterStatusGraph = $("<div></div>")
+        .addClass(filterStatusId)
+        .appendTo($(`.${selector}`));
+      const errorsTable = $("<div></div>")
+        .addClass(errorTableId)
+        .appendTo($(`.${selector}`));
 
       $(`#${addBtnId}`).on("click", () => {
-        const startDateInputVal = new Date($(`#${startSelectorId}`).val()).getTime();
+        const startDateInputVal = new Date(
+          $(`#${startSelectorId}`).val()
+        ).getTime();
         let endDateInputVal;
         endDateInputVal = $(`#${endSelectorId}`).val()
           ? new Date($(`#${endSelectorId}`).val()).getTime()
@@ -103,8 +125,7 @@ const reportCreator = {
           $(`#${iccidSelectorId}`).val(),
           startDateInputVal,
           endDateInputVal
-        ).then( async (data) => {
-
+        ).then(async (data) => {
           let fullIccidData = data.sessions;
           let additionalData;
 
@@ -140,8 +161,11 @@ const reportCreator = {
           }
 
           const labels = [];
-          for (let i = 1; i <= daysCountInCurrentMonth; i++) {
-            labels.push(i);
+          for (let i = 0; i <= daysCountInCurrentMonth; i++) {
+            const dateFormated = dayjs(
+              startDateInputVal + i * SEC_IN_DAY
+            ).format("DD-MM-YY");
+            labels.push(dateFormated);
           }
 
           const usageChart = new Chart(usageGraphArea, {
@@ -163,7 +187,9 @@ const reportCreator = {
                 },
                 title: {
                   display: true,
-                  text: `Refills per day; ICCID: ${$(`#${iccidSelectorId}`).val()}`,
+                  text: `Refills per day; ICCID: ${$(
+                    `#${iccidSelectorId}`
+                  ).val()}`,
                 },
               },
             },
@@ -187,13 +213,45 @@ const reportCreator = {
             energySafe: numOfRefills * ENERGY_SAFE_PER_BOTTLE,
           };
 
-
           new Tabulator(`.${statisticsTableId}`, {
             data: [envDetailsData],
             layout: "fitColumns",
             height: "auto",
             columns: COLUMNS.deviceStatisticsTable,
           });
+
+          // filter progress bar
+          const filterStatus = await API.loadDeviceTable(
+            $(`#${iccidSelectorId}`).val(),
+            "1625097600000",
+            new Date().getTime()
+          );
+
+          if (filterStatus.total > 1000) {
+            const additionalFilterStatus = await API.loadDeviceTable(
+              $(`#${iccidSelectorId}`).val(),
+              filterStatus.sessions[999].start_time,
+              new Date().getTime()
+            );
+            additionalFilterStatus.sessions.forEach((item) => {
+              filterStatus.sessions.push(item);
+            });
+          }
+
+          let refillsNumberFromJuly = 0;
+
+          filterStatus.sessions.forEach((session) => {
+            if (session.start_time > 1626393600000) {
+              refillsNumberFromJuly += REFILL_COUNT_PER_SESSION_RENEWED;
+            } else {
+              refillsNumberFromJuly += REFILL_COUNT_PER_SESSION;
+            }
+          });
+
+          $("<div class='filter-progress'><div>")
+            .css("width", `${refillsNumberFromJuly / 1000}%`)
+            .appendTo($(`.${filterStatusId}`));
+          // end of filter progress bar
 
           const deviations = [];
           fullIccidData.forEach((session) => {
@@ -202,19 +260,245 @@ const reportCreator = {
             }
           });
 
-          new Tabulator(`.${errorTableId}`, {
-            data: deviations,
-            layout: "fitColumns",
-            height: "auto",
-            columns: COLUMNS.deviceErrorTable,
-          });
+          if (deviations.length !== 0) {
+            new Tabulator(`.${errorTableId}`, {
+              data: deviations,
+              layout: "fitColumns",
+              height: "auto",
+              columns: COLUMNS.deviceErrorTable,
+            });
+          }
 
-          });
+          return {
+            iccidSelectorId,
+            startSelectorId,
+            endSelectorId,
+            addBtnId
+          }
+        }).then((data) => {
+          $(`#${data.iccidSelectorId}`).remove();
+          $(`#${data.startSelectorId}`).remove();
+          $(`#${data.endSelectorId}`).remove();
+          $(`#${data.addBtnId}`).remove();
+        });
 
         addDeleteBtn(selector);
       });
     });
   },
+
+  createDeviceTableMonthly(selector) {
+    // const newReport = new DeviceReport(selector).init().then((report) => {
+    //   document.querySelector('.content-block').appendChild(report);
+    // })
+
+    $("<div></div>").addClass(selector).appendTo($(".content-block"));
+
+    const iccidSelectorId = `device-selector-${selector}`;
+    const startSelectorId = `start-${selector}`;
+    const endSelectorId = `end-${selector}`;
+    const addBtnId = `add-device-${selector}`;
+    const statisticsTableId = `env-table-${selector}`;
+    const filterStatusId = `filter-status-${selector}`;
+    const errorTableId = `err-table-${selector}`;
+
+    $(`<select id='${iccidSelectorId}'></select>`).appendTo($(`.${selector}`));
+
+    API.loadGeneralTable().then((data) => {
+
+      createDeviceSelectorControlsMonth(
+        data,
+        iccidSelectorId,
+        selector,
+        addBtnId,
+        startSelectorId,
+        endSelectorId
+      );
+
+      const usageGraphBlock = $("<div></div>");
+      const usageGraphArea = $("<canvas></canvas>");
+      $(usageGraphArea).appendTo(usageGraphBlock);
+      usageGraphBlock.appendTo($(`.${selector}`));
+
+      const statisticsTable = $("<div></div>")
+        .addClass(statisticsTableId)
+        .appendTo($(`.${selector}`));
+      const filterStatusGraph = $("<div></div>")
+        .addClass(filterStatusId)
+        .appendTo($(`.${selector}`));
+      const errorsTable = $("<div></div>")
+        .addClass(errorTableId)
+        .appendTo($(`.${selector}`));
+
+      $(`#${addBtnId}`).on("click", () => {
+        const startDateInputVal = dayjs($(`#${startSelectorId}`).val()).startOf('month').unix() * 1000;
+        const endDateInputVal = dayjs($(`#${startSelectorId}`).val()).endOf('month').unix() * 1000;
+
+        API.loadDeviceTable(
+          $(`#${iccidSelectorId}`).val(),
+          startDateInputVal,
+          endDateInputVal
+        ).then(async (data) => {
+          let fullIccidData = data.sessions;
+          let additionalData;
+
+          if (data.sessions.length === 1000) {
+            additionalData = await API.loadDeviceTable(
+              $(`#${iccidSelectorId}`).val(),
+              data.sessions[999].start_time,
+              endDateInputVal
+            );
+            fullIccidData = await data.sessions.concat(additionalData.sessions);
+          }
+
+          const daysCountInCurrentMonth = Math.round(
+            (endDateInputVal - startDateInputVal) / SEC_IN_DAY + 1
+          );
+          const monthlyData = new Array(daysCountInCurrentMonth).fill(0);
+
+          let sessionCounter = 0;
+          for (let day = 0; day <= monthlyData.length; day++) {
+            let nextDayEpoch = startDateInputVal + SEC_IN_DAY * (day + 1);
+            while (sessionCounter < fullIccidData.length) {
+              if (fullIccidData[sessionCounter].start_time < nextDayEpoch) {
+                if (fullIccidData[sessionCounter].start_time > 1626393600000) {
+                  monthlyData[day] += REFILL_COUNT_PER_SESSION_RENEWED;
+                } else {
+                  monthlyData[day] += REFILL_COUNT_PER_SESSION;
+                }
+                sessionCounter++;
+              } else {
+                break;
+              }
+            }
+          }
+
+          const labels = [];
+          for (let i = 0; i <= daysCountInCurrentMonth; i++) {
+            const dateFormated = dayjs(
+              startDateInputVal + i * SEC_IN_DAY
+            ).format("DD-MM-YY");
+            labels.push(dateFormated);
+          }
+
+          const usageChart = new Chart(usageGraphArea, {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "Number of refills",
+                  backgroundColor: ["#3e95cd"],
+                  data: monthlyData,
+                },
+              ],
+            },
+            options: {
+              plugins: {
+                legend: {
+                  position: `top`,
+                },
+                title: {
+                  display: true,
+                  text: `Refills per day; ICCID: ${$(
+                    `#${iccidSelectorId}`
+                  ).val()}`,
+                },
+              },
+            },
+          });
+
+          let numOfRefills = 0;
+
+          fullIccidData.forEach((session) => {
+            if (session.start_time > 1626393600000) {
+              numOfRefills += REFILL_COUNT_PER_SESSION_RENEWED;
+            } else {
+              numOfRefills += REFILL_COUNT_PER_SESSION;
+            }
+          });
+
+          const envDetailsData = {
+            numOfRefills,
+            litOfWater: numOfRefills * LITRES_OF_WATER,
+            co2Emissions: numOfRefills * CO2_EMISSIONS,
+            plasticWater: numOfRefills * PLATIC_WASTE,
+            energySafe: numOfRefills * ENERGY_SAFE_PER_BOTTLE,
+          };
+
+          new Tabulator(`.${statisticsTableId}`, {
+            data: [envDetailsData],
+            layout: "fitColumns",
+            height: "auto",
+            columns: COLUMNS.deviceStatisticsTable,
+          });
+
+          // filter progress bar
+          const filterStatus = await API.loadDeviceTable(
+            $(`#${iccidSelectorId}`).val(),
+            "1625097600000",
+            new Date().getTime()
+          );
+
+          if (filterStatus.total > 1000) {
+            const additionalFilterStatus = await API.loadDeviceTable(
+              $(`#${iccidSelectorId}`).val(),
+              filterStatus.sessions[999].start_time,
+              new Date().getTime()
+            );
+            additionalFilterStatus.sessions.forEach((item) => {
+              filterStatus.sessions.push(item);
+            });
+          }
+
+          let refillsNumberFromJuly = 0;
+
+          filterStatus.sessions.forEach((session) => {
+            if (session.start_time > 1626393600000) {
+              refillsNumberFromJuly += REFILL_COUNT_PER_SESSION_RENEWED;
+            } else {
+              refillsNumberFromJuly += REFILL_COUNT_PER_SESSION;
+            }
+          });
+
+          $("<div class='filter-progress'><div>")
+            .css("width", `${refillsNumberFromJuly / 1000}%`)
+            .appendTo($(`.${filterStatusId}`));
+          // end of filter progress bar
+
+          const deviations = [];
+          fullIccidData.forEach((session) => {
+            if (session["data_size"] > 1000) {
+              deviations.push(session);
+            }
+          });
+
+          if (deviations.length !== 0) {
+            new Tabulator(`.${errorTableId}`, {
+              data: deviations,
+              layout: "fitColumns",
+              height: "auto",
+              columns: COLUMNS.deviceErrorTable,
+            });
+          }
+
+          return {
+            iccidSelectorId,
+            startSelectorId,
+            endSelectorId,
+            addBtnId
+          }
+        }).then((data) => {
+          $(`#${data.iccidSelectorId}`).remove();
+          $(`#${data.startSelectorId}`).remove();
+          $(`#${data.endSelectorId}`).remove();
+          $(`#${data.addBtnId}`).remove();
+        });
+
+        addDeleteBtn(selector);
+      });
+    });
+  }
 };
 
 export default reportCreator;

@@ -33,6 +33,12 @@ export default class Board {
         this.reportIndex++;
         break;
       }
+      case "device-monthly": {
+        const selector = "device-graph-" + this.reportIndex;
+        this.reportCreator.createDeviceTableMonthly(selector);
+        this.reportIndex++;
+        break;
+      }
       case "device": {
         const selector = "device-graph-" + this.reportIndex;
         this.reportCreator.createDeviceTable(selector);

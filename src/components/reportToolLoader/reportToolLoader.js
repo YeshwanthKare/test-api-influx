@@ -10,7 +10,8 @@ const reportToolLoader = (controller) => {
     .append('<option value="general">Table: General</option>')
     .append('<option value="errors">Table: Errors</option>')
     .append('<option value="balance">Table: Account Balance</option>')
-    .append('<option value="device">Graph: Device</option>')
+    .append('<option value="device-monthly">Graph: Device (monthly)</option>')
+    .append('<option value="device">Graph: Device (daily)</option>')
     .appendTo(panel);  
 
   const submitBtn = $('<button>Add</button>');
