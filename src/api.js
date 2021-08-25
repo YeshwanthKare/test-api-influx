@@ -1,3 +1,5 @@
+import { testData } from './mocks';
+
 const HTTP_ROUTES = {
   ROOT: 'https://api.1ot.mobi/v1',
   ACCOUNT_SIMS: 'get_account_sims',
@@ -34,7 +36,9 @@ const API = {
   },
 
   loadDeviceTable(iccid, startDate, endDate) {
-    return this.getData(HTTP_ROUTES.SIM_SESSIONS, `iccid=${iccid}&from=${startDate}&to=${endDate}`).then(data => data);
+    return this.getData(HTTP_ROUTES.SIM_SESSIONS, `iccid=${iccid}&from=${startDate}&to=${endDate}`).then(data => {
+      return testData;
+    });
   }
 };
 

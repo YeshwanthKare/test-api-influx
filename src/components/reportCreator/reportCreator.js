@@ -21,6 +21,7 @@ import {
   PLATIC_WASTE,
   FILTER_LIMIT,
   COLUMNS,
+  PELLETS_OF_WATER,
 } from "./constants";
 
 const reportCreator = {
@@ -208,9 +209,9 @@ const reportCreator = {
           const envDetailsData = {
             numOfRefills,
             litOfWater: numOfRefills * LITRES_OF_WATER,
-            co2Emissions: numOfRefills * CO2_EMISSIONS,
+            co2Emissions: Math.round(numOfRefills * CO2_EMISSIONS * 100) / 100,
             plasticWater: numOfRefills * PLATIC_WASTE,
-            energySafe: numOfRefills * ENERGY_SAFE_PER_BOTTLE,
+            energySafe: Math.round(numOfRefills / PELLETS_OF_WATER * 100) / 100,
           };
 
           new Tabulator(`.${statisticsTableId}`, {
@@ -421,9 +422,9 @@ const reportCreator = {
           const envDetailsData = {
             numOfRefills,
             litOfWater: numOfRefills * LITRES_OF_WATER,
-            co2Emissions: numOfRefills * CO2_EMISSIONS,
+            co2Emissions: Math.round(numOfRefills * CO2_EMISSIONS * 100) / 100,
             plasticWater: numOfRefills * PLATIC_WASTE,
-            energySafe: numOfRefills * ENERGY_SAFE_PER_BOTTLE,
+            energySafe: Math.round(numOfRefills / PELLETS_OF_WATER * 100) / 100,
           };
 
           new Tabulator(`.${statisticsTableId}`, {

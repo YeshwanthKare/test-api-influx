@@ -6,9 +6,10 @@ export const REFILL_COUNT_PER_SESSION_RENEWED = 20;
 export const RENEWED_REFILL_DATE = 1626393600000;
 export const ENERGY_SAFE_PER_BOTTLE = 1.5;
 export const LITRES_OF_WATER = 0.5;
-export const CO2_EMISSIONS = 0.091;
+export const CO2_EMISSIONS = 0.137;
 export const PLATIC_WASTE = 0.024;
 export const FILTER_LIMIT = 50000;
+export const PELLETS_OF_WATER = 1680;
 
 export const COLUMNS = {
   generalTable: [
@@ -66,19 +67,19 @@ export const COLUMNS = {
       field: "numOfRefills",
     },
     {
-      title: "Litres of water",
+      title: "Serving<br/>Litres of water",
       field: "litOfWater",
     },
     {
-      title: "CO2 emissions, kg",
+      title: "Reducing<br/>CO2 emissions, kg",
       field: "co2Emissions",
     },
     {
-      title: "Plastic waste, kg",
+      title: "Reducing<br/>Plastic waste, kg",
       field: "plasticWater",
     },
     {
-      title: "Energy not wasted, kWh",
+      title: "Reducing<br/>Pallets of single-use bottles",
       field: "energySafe",
     },
   ],
