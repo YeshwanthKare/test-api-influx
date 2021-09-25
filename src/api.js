@@ -1,4 +1,4 @@
-import { testData } from './mocks';
+import { testData, testDataSecond } from './mocks';
 
 const HTTP_ROUTES = {
   ROOT: 'https://api.1ot.mobi/v1',
@@ -37,6 +37,10 @@ const API = {
 
   loadDeviceTable(iccid, startDate, endDate) {
     return this.getData(HTTP_ROUTES.SIM_SESSIONS, `iccid=${iccid}&from=${startDate}&to=${endDate}`).then(data => {
+      console.log(startDate);
+      if (startDate >= 1630447200000) {
+        return testDataSecond;
+      }
       return testData;
     });
   }

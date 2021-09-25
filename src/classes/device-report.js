@@ -14,26 +14,33 @@ export default class DeviceReport {
 
     this.contentWrapper = document.createElement("DIV");
     this.deviceSelect = document.createElement("SELECT");
+    this.startDateSelector = $(
+      `<input type="date" id="${this.startSelectorId}">`
+    );
+    this.endDateSelector = $(`<input type="date" id="${this.endSelectorId}">`);
+    this.addButton = $(`<button id="${this.addBtnId}">Add</button>`);
   }
 
-  async createReportControl() {
-    $(this.deviceSelect).appendTo($(this.contentWrapper));
-
-    const data = await API.loadGeneralTable();
-
+  generateReportControlElements(data) {
     data.forEach((device) => {
       $(`<option value="${device.iccid}">${device.iccid}</option>`).appendTo(
         $(this.deviceSelect)
       );
     });
-    $(`<input type="date" id="${this.startSelectorId}">`).appendTo($(this.contentWrapper));
-    $(`<input type="date" id="${this.endSelectorId}">`).appendTo($(this.contentWrapper));
-    $(`<button id="${this.addBtnId}">Add</button>`).appendTo($(this.contentWrapper));
+    this.startDateSelector.appendTo($(this.contentWrapper));
+    this.endDateSelector.appendTo($(this.contentWrapper));
+    this.addButton.appendTo($(this.contentWrapper));
+  }
+
+  async createReportControl() {
+    $(this.deviceSelect).appendTo($(this.contentWrapper));
+    const data = await API.loadGeneralTable();
+    this.generateReportControlElements(data);
   }
 
   handleReportAddBtn() {
-    this.contentWrapper.querySelector(`#${this.addBtnId}`).addEventListener('click', () => {
-      console.log('kek');
+    this.addButton.on("click", () => {
+      console.log("kek");
     });
   }
 
