@@ -48,7 +48,7 @@ router.post("/session", deviceValidation, async (req, res) => {
 
     console.log(client);
     await influx.writePoints(client, {
-      database: "sessions",
+      database: "influx-db",
       precision: "s",
     });
     return res.json({ success: "success" });
